@@ -1,10 +1,8 @@
 <?php
 
-use App\Actions\Teams\CreateTeam;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Livewire\Attributes\Layout;
@@ -23,7 +21,7 @@ new #[Layout('layouts::auth')] class extends Component
     /**
      * Handle an incoming registration request.
      */
-    public function register(CreateTeam $createTeam): void
+    public function register(): void
     {
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -33,15 +31,7 @@ new #[Layout('layouts::auth')] class extends Component
 
         $validated['password'] = Hash::make($validated['password']);
 
-        $user = DB::transaction(function () use ($createTeam, $validated): User {
-            $user = User::create($validated);
-
-            $createTeam->handle($user, $user->name."'s Team", isPersonal: true);
-
-            return $user;
-        });
-
-        event(new Registered($user));
+        event(new Registered(($user = User::create($validated))));
 
         Auth::login($user);
 

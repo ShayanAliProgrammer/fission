@@ -65,10 +65,16 @@ The `composer setup` command handles:
 - Application key generation
 - SQLite database creation
 - Flux Pro credential setup
+- Optional teams scaffolding (defaults to no during install)
 - Database migrations
 - Project name configuration
 - NPM dependency installation
 - Asset building
+
+During installation, Fission will ask whether you want full teams support.
+
+- Choose `yes` to keep team creation, switching, invitations, and member role management.
+- Choose `no` to remove the team-specific backend, routes, views, and tests before setup finishes.
 
 ## Development
 

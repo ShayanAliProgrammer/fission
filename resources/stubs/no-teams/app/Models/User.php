@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Concerns\HasTeams;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,7 +14,6 @@ use Override;
 final class User extends Authenticatable
 {
     use HasFactory;
-    use HasTeams;
     use HasUuids;
     use Notifiable;
 
@@ -44,7 +42,6 @@ final class User extends Authenticatable
     {
         return [
             'id' => 'string',
-            'current_team_id' => 'string',
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];

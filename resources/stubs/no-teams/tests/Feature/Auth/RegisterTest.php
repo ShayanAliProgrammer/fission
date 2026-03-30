@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Models\Team;
 use App\Models\User;
 use Livewire\Livewire;
 
@@ -21,20 +20,6 @@ test('new users can register', function () {
     assertDatabaseHas('users', [
         'name' => 'Test User',
         'email' => 'test@example.com',
-    ]);
-
-    $user = User::where('email', 'test@example.com')->firstOrFail();
-    $team = Team::query()->first();
-
-    expect($team)->not->toBeNull();
-    expect($team?->name)->toBe("Test User's Team");
-    expect($team?->is_personal)->toBeTrue();
-    expect($user->current_team_id)->toBe($team?->id);
-
-    assertDatabaseHas('team_members', [
-        'team_id' => $team?->id,
-        'user_id' => $user->id,
-        'role' => 'owner',
     ]);
 });
 

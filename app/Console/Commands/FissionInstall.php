@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Support\RemovesTeamSupport;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 
@@ -35,6 +36,8 @@ final class FissionInstall extends Command
 
         // Optionally install additional packages
         $this->handleOptionalPackages();
+
+        $this->handleTeamSupport();
 
         $this->setupEnvFile();
         $this->reloadEnvironment();
@@ -324,6 +327,19 @@ final class FissionInstall extends Command
         }
     }
 
+    private function handleTeamSupport(): void
+    {
+        if (confirm('Would you like to add teams support to your application?', false)) {
+            $this->line('Teams support enabled.');
+
+            return;
+        }
+
+        app(RemovesTeamSupport::class)->handle();
+
+        $this->line('Teams support removed from this installation.');
+    }
+
     private function postInstallFilament(): void
     {
         passthru('php artisan filament:install --panels --no-interaction');
@@ -356,6 +372,10 @@ final class FissionInstall extends Command
                 File::delete($file);
             }
         }
+
+        File::delete(app_path('Support/RemovesTeamSupport.php'));
+        File::deleteDirectory(resource_path('stubs/no-teams'));
+        File::delete(base_path('tests/Feature/RemovesTeamSupportTest.php'));
 
         // This will be cleaned up by Laravel after the command completes
         $this->line('Installation files removed.');

@@ -118,7 +118,7 @@ new #[Layout('layouts::app')] class extends Component
 
                     <flux:input wire:model="email" label="Email" type="email" placeholder="Your email address" required />
 
-                    @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail &&! auth()->user()->hasVerifiedEmail())
+                    @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
                         <div>
                             <p class="text-sm text-gray-800">
                                 Your email address is unverified.
@@ -155,24 +155,6 @@ new #[Layout('layouts::app')] class extends Component
                 </div>
             </form>
         </flux:card>
-
-        <flux:card>
-            <div class="space-y-6">
-                <div>
-                    <flux:heading size="lg">Teams</flux:heading>
-                    <flux:subheading>Manage your current team or create another workspace.</flux:subheading>
-                </div>
-
-                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <flux:text>
-                        Current team: {{ auth()->user()->currentTeam?->name ?? 'No team selected' }}
-                    </flux:text>
-
-                    <flux:button href="{{ route('teams.index') }}" wire:navigate variant="primary">Manage Teams</flux:button>
-                </div>
-            </div>
-        </flux:card>
-
         <flux:card>
             <div class="space-y-6">
                 <div>

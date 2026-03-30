@@ -24,9 +24,6 @@ Route::middleware('guest')->group(function () {
 // Profile routes
 Route::middleware(['auth'])->group(function () {
     Route::livewire('/profile', 'pages::profile.index')->name('profile.update');
-    Route::livewire('/teams', 'pages::teams.index')->name('teams.index');
-    Route::livewire('/teams/{team}', 'pages::teams.edit')->name('teams.edit');
-    Route::livewire('/invitations/{invitation}/accept', 'pages::teams.accept-invitation')->name('teams.invitations.accept');
 });
 
 // Email verification notice route
