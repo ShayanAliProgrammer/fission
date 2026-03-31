@@ -53,6 +53,8 @@ This project has domain-specific skills available. You MUST activate the relevan
 
 - Stick to existing directory structure; don't create new base folders without approval.
 - Do not change the application's dependencies without approval.
+- When teams are enabled, follow the starter-kit pattern for team-aware features: use `current_team_id` on the user, prefer team-scoped URLs for team-specific pages (for example `/{team}/playground`), store team-owned records with `team_id`, query through the bound `Team`, and authorize via team membership / `TeamPolicy` instead of global access.
+- Do not add a top-level `Teams` nav item unless the user explicitly asks for it; team management lives off the team switcher and team-specific routes.
 
 ## Frontend Bundling
 

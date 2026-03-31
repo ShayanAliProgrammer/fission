@@ -50,15 +50,29 @@ Pages are Livewire 4 full-page components in the `pages::` namespace with `⚡` 
 ```
 resources/views/pages/
 ├── ⚡dashboard.blade.php      → /
-├── ⚡playground.blade.php     → /playground
+├── ⚡playground.blade.php     → /{team}/playground
 ├── auth/
 │   ├── ⚡login.blade.php      → /auth/login
 │   └── ⚡register.blade.php   → /auth/register
-└── profile/
-    └── ⚡index.blade.php      → /profile
+├── profile/
+│   └── ⚡index.blade.php      → /profile
+└── teams/
+    ├── ⚡index.blade.php      → /teams
+    ├── ⚡edit.blade.php       → /teams/{team}
+    └── ⚡accept-invitation.blade.php → /invitations/{invitation}/accept
 ```
 
 Routes are defined in `routes/web.php` using `Route::livewire()`.
+
+### Teams Pattern
+
+When teams support is installed, build team-aware features the same way as the starter kits:
+
+- Keep the selected team on `User::$current_team_id` and use the existing team switcher UI.
+- Use URL-scoped routes for team-specific product areas, for example `/{team}/playground` or `/{team}/todos`.
+- Add `team_id` to team-owned models and load records through the bound `Team` model.
+- Protect team routes with membership/policy checks such as `->can('view', 'team')`.
+- Use `/teams` and `/teams/{team}` for team management, invitations, and membership administration.
 
 ### Reusable Components
 

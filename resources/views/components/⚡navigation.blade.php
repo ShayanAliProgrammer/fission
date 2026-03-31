@@ -35,6 +35,7 @@ new class extends Component
     public function switchTeam(string $teamId): void
     {
         $user = Auth::user();
+        $currentTeam = $user->currentTeam;
 
         abort_unless($user->belongsToTeam($team = Team::query()->findOrFail($teamId)), 403);
 
@@ -42,7 +43,15 @@ new class extends Component
 
         Flux::toast('Switched teams.', variant: 'success');
 
-        $this->redirect(request()->header('Referer') ?: route('teams.index', absolute: false), navigate: true);
+        $referer = request()->header('Referer');
+
+        if (is_string($referer) && $currentTeam !== null && str_contains($referer, '/'.$currentTeam->slug.'/playground')) {
+            $this->redirect(str_replace('/'.$currentTeam->slug.'/playground', '/'.$team->slug.'/playground', $referer), navigate: true);
+
+            return;
+        }
+
+        $this->redirect($referer ?: route('teams.index', absolute: false), navigate: true);
     }
 };
 ?>
@@ -57,9 +66,7 @@ new class extends Component
         <flux:navbar class="max-lg:hidden">
             <flux:navbar.item icon="home" href="/" wire:navigate>Home</flux:navbar.item>
             <flux:separator vertical variant="subtle" class="my-2" />
-            <flux:navbar.item icon="face-smile" href="/playground" wire:navigate>Playground</flux:navbar.item>
-            <flux:separator vertical variant="subtle" class="my-2" />
-            <flux:navbar.item icon="users" href="{{ route('teams.index') }}" wire:navigate>Teams</flux:navbar.item>
+            <flux:navbar.item icon="face-smile" href="{{ route('playground', auth()->user()->currentTeam) }}" wire:navigate>Playground</flux:navbar.item>
         </flux:navbar>
 
         <flux:spacer />
@@ -115,8 +122,7 @@ new class extends Component
 
         <flux:sidebar.nav>
             <flux:sidebar.item icon="home" href="/" wire:navigate>Home</flux:sidebar.item>
-            <flux:sidebar.item icon="face-smile" href="/playground" wire:navigate>Playground</flux:sidebar.item>
-            <flux:sidebar.item icon="users" href="{{ route('teams.index') }}" wire:navigate>Teams</flux:sidebar.item>
+            <flux:sidebar.item icon="face-smile" href="{{ route('playground', auth()->user()->currentTeam) }}" wire:navigate>Playground</flux:sidebar.item>
         </flux:sidebar.nav>
     </flux:sidebar>
 

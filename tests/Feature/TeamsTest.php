@@ -19,6 +19,31 @@ test('teams page requires authentication', function () {
     get('/teams')->assertRedirect('/auth/login');
 });
 
+test('team members can view the playground in team context', function () {
+    $user = User::factory()->create();
+    $team = app(CreateTeam::class)->handle($user, 'Owner Team', true);
+
+    get(route('playground', $team))
+        ->assertRedirect('/auth/login');
+
+    $this->actingAs($user);
+
+    get(route('playground', $team))
+        ->assertOk()
+        ->assertSee('Working in the context of Owner Team.');
+});
+
+test('users cannot view another teams playground', function () {
+    $owner = User::factory()->create();
+    $outsider = User::factory()->create();
+    $team = app(CreateTeam::class)->handle($owner, 'Owner Team', true);
+    app(CreateTeam::class)->handle($outsider, 'Outsider Team', true);
+
+    $this->actingAs($outsider);
+
+    get(route('playground', $team))->assertForbidden();
+});
+
 test('authenticated users can create teams', function () {
     $user = User::factory()->create();
 

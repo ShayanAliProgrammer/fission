@@ -9,10 +9,6 @@ Route::livewire('/', 'pages::dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
-Route::livewire('/playground', 'pages::playground')
-    ->middleware(['auth', 'verified'])
-    ->name('playground');
-
 // Auth routes
 Route::middleware('guest')->group(function () {
     Route::livewire('/auth/login', 'pages::auth.login')->name('login');
@@ -28,6 +24,11 @@ Route::middleware(['auth'])->group(function () {
     Route::livewire('/teams/{team}', 'pages::teams.edit')->name('teams.edit');
     Route::livewire('/invitations/{invitation}/accept', 'pages::teams.accept-invitation')->name('teams.invitations.accept');
 });
+
+Route::livewire('/{team}/playground', 'pages::playground')
+    ->middleware(['auth', 'verified'])
+    ->can('view', 'team')
+    ->name('playground');
 
 // Email verification notice route
 Route::get('/verify-email', function () {

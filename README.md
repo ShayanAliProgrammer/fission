@@ -76,6 +76,16 @@ During installation, Fission will ask whether you want full teams support.
 - Choose `yes` to keep team creation, switching, invitations, and member role management.
 - Choose `no` to remove the team-specific backend, routes, views, and tests before setup finishes.
 
+### Working With Teams
+
+When teams are enabled, Fission follows the starter-kit pattern for team-aware features:
+
+- Store the active team on the user via `current_team_id` and switch context from the team switcher UI.
+- Put team-owned features under a team URL when the page itself is team-specific, for example `/{team}/playground`.
+- Model team-owned records with a `team_id` foreign key and query through the bound team, not globally.
+- Authorize access through team membership or team policies, for example `->can('view', 'team')` on routes.
+- Keep generic account pages like `/profile` unscoped unless the page is explicitly about a team.
+
 ## Development
 
 ```bash
