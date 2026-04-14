@@ -294,6 +294,11 @@ final class FissionInstall extends Command
             'pirsch' => 'pirsch-analytics/laravel',
         ];
 
+        // If Flux Pro is selected, register its private repository first
+        if (in_array('flux-pro', $selected)) {
+            passthru('composer config repositories.flux-pro composer https://composer.fluxui.dev --no-interaction');
+        }
+
         // Collect all composer packages and install in a single command
         // to avoid autoloader regeneration breaking the running process
         $composerPackages = array_map(fn (string $key): string => $packageMap[$key], $selected);
