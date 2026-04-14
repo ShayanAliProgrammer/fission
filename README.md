@@ -33,9 +33,11 @@ Eventually I knew I wanted to create my own starting kit that worked well for wh
 
 Once Livewire Flux released, it was the perfect time to make this happen.
 
-## Flux License Required
+## Flux
 
-A license for Flux (technically, "Flux Pro") is required to use Fission. Fission does not contain any of Flux's CSS, built CSS, or Blade components. However, if you do not have a license there are only two components used in the Flux Pro version (Toast and Card). Feel free to remove them from the starter kit.
+Fission uses [Livewire Flux](https://fluxui.dev) (free) for its UI components. No Flux Pro license is required out of the box.
+
+If you want access to premium components (date pickers, calendars, charts, tabs, and more), you can install Flux Pro during setup when prompted for optional packages. Fission does not include any of Flux's CSS or built assets — you must have the package installed to use it.
 
 ## Installation
 
@@ -64,7 +66,7 @@ The `composer setup` command handles:
 - Environment configuration (.env)
 - Application key generation
 - SQLite database creation
-- Flux Pro credential setup
+- Optional packages (Flux Pro, Filament, Bento, etc.)
 - Optional teams scaffolding (defaults to no during install)
 - Database migrations
 - Project name configuration

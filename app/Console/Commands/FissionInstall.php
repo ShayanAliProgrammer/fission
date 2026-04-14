@@ -31,9 +31,6 @@ final class FissionInstall extends Command
         // Handle Git repository based on installation method
         $this->handleGitRepository();
 
-        // Handle Flux Pro activation (always optional)
-        $this->handleFluxActivation();
-
         // Optionally install additional packages
         $this->handleOptionalPackages();
 
@@ -121,36 +118,23 @@ final class FissionInstall extends Command
             || str_contains($remoteUrl, 'github.com/joshcirre/fission');
     }
 
-    private function handleFluxActivation(): void
+    private function postInstallFluxPro(): void
     {
-        $this->line('Checking Flux Pro credentials...');
+        // Check for auth.json in home directory (personal convenience shortcut)
+        $sourceAuthJson = $_SERVER['HOME'].'/Code/flux-auth.json';
 
-        // Check if auth.json already exists
-        if (File::exists(base_path('auth.json'))) {
-            $this->info('Flux Pro credentials already configured.');
+        if (File::exists($sourceAuthJson) && ! File::exists(base_path('auth.json'))) {
+            File::copy($sourceAuthJson, base_path('auth.json'));
+            $this->info('Flux Pro credentials copied from ~/Code/flux-auth.json.');
 
             return;
         }
 
-        // Check for auth.json in home directory
-        $sourceAuthJson = $_SERVER['HOME'].'/Code/flux-auth.json';
-
-        if (File::exists($sourceAuthJson)) {
-            $this->line('Found flux-auth.json in ~/Code/ directory. Copying to application...');
-            File::copy($sourceAuthJson, base_path('auth.json'));
-            $this->info('Flux Pro credentials copied successfully.');
+        if (! File::exists(base_path('auth.json'))) {
+            $this->line('Running flux:activate to configure your Flux Pro credentials...');
+            $this->call('flux:activate');
         } else {
-            // No auth.json found, ask if they have a Flux Pro account
-            $hasFluxPro = confirm('Do you have a Flux Pro account?', true);
-
-            if ($hasFluxPro) {
-                $this->line('Running flux:activate command...');
-                $this->call('flux:activate');
-            } else {
-                $this->warn('This starter kit requires Flux Pro for the UI components.');
-                $this->comment('You can activate it later by running: php artisan flux:activate');
-                $this->comment('Or manually add your credentials to auth.json');
-            }
+            $this->info('Flux Pro installed. Credentials already configured.');
         }
     }
 
@@ -287,6 +271,7 @@ final class FissionInstall extends Command
         $selected = multiselect(
             label: 'Which packages would you like to install?',
             options: [
+                'flux-pro' => 'Flux Pro – Premium UI components (requires a Flux license)',
                 'bento' => 'Bento – Customer engagement & email automation',
                 'filament' => 'Filament – Admin panel & UI toolkit',
                 'nightwatch' => 'Nightwatch – Application monitoring & alerting',
@@ -301,6 +286,7 @@ final class FissionInstall extends Command
         }
 
         $packageMap = [
+            'flux-pro' => 'livewire/flux-pro:"^2.0"',
             'bento' => 'bentonow/bento-laravel-sdk',
             'filament' => 'filament/filament:"^5.0"',
             'nightwatch' => 'laravel/nightwatch',
@@ -318,6 +304,7 @@ final class FissionInstall extends Command
         // Run post-install steps
         foreach ($selected as $package) {
             match ($package) {
+                'flux-pro' => $this->postInstallFluxPro(),
                 'bento' => $this->info('Bento installed. Add your BENTO_SITE_UUID and BENTO_PUBLISHABLE_KEY to .env to complete setup.'),
                 'filament' => $this->postInstallFilament(),
                 'nightwatch' => $this->info('Nightwatch installed. Run php artisan nightwatch:install to complete setup.'),
