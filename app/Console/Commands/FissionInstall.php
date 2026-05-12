@@ -7,10 +7,20 @@ namespace App\Console\Commands;
 use App\Support\RemovesTeamSupport;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
+use Laravel\Prompts\Support\Logger;
+use Symfony\Component\Process\Process;
 
 use function Laravel\Prompts\confirm;
+use function Laravel\Prompts\error;
+use function Laravel\Prompts\info;
+use function Laravel\Prompts\intro;
 use function Laravel\Prompts\multiselect;
+use function Laravel\Prompts\note;
+use function Laravel\Prompts\outro;
+use function Laravel\Prompts\spin;
+use function Laravel\Prompts\task;
 use function Laravel\Prompts\text;
+use function Laravel\Prompts\warning;
 
 final class FissionInstall extends Command
 {
@@ -24,81 +34,59 @@ final class FissionInstall extends Command
     {
         app()->detectEnvironment(fn (): string => 'local');
 
-        $this->line('');
-        $this->info('Starting Fission installation...');
-        $this->line('');
+        intro('Installing Fission');
 
-        // Handle Git repository based on installation method
         $this->handleGitRepository();
-
-        // Optionally install additional packages
         $this->handleOptionalPackages();
-
         $this->handleTeamSupport();
 
-        $this->setupEnvFile();
-        $this->reloadEnvironment();
+        spin(function (): void {
+            $this->setupEnvFile();
+            $this->reloadEnvironment();
+        }, 'Configuring environment');
+
         $this->runMigrations();
         $this->setProjectName();
 
-        // Install Instruckt agent integration
         $this->installInstruckt();
-
-        // Update Boost guidelines & skills (picks up any optional packages just installed)
         $this->updateBoost();
 
-        $this->cleanup();
+        spin(fn () => $this->cleanup(), 'Cleaning up installation files');
 
-        // Initialize Git repository after cleanup if requested
         $this->initializeGitRepository();
-
-        // Generate PHPStan baseline for test code
         $this->generatePhpStanBaseline();
 
-        // Create a visually distinct completion message
         $this->displayCompletionMessage();
 
-        // The Laravel installer will continue, but we've made our message stand out
         return 0;
     }
 
     private function displayCompletionMessage(): void
     {
-        $this->newLine(2);
-        $this->info('Fission installation completed successfully!');
-        $this->newLine();
-        $this->comment('Next steps:');
-        $this->line('  1. Run <info>composer run dev</info> to start the development server');
-        $this->line('     (includes Laravel, queue, logs, and Vite)');
-        $this->newLine();
-        $this->line('  Keep creating.');
-        $this->newLine(2);
+        outro('Fission installation complete!');
+        note(
+            'Next steps:'.PHP_EOL.
+            '  1. Run `composer run dev` to start the development server'.PHP_EOL.
+            '     (includes Laravel, queue, logs, and Vite)'.PHP_EOL.PHP_EOL.
+            '  Keep creating.'
+        );
     }
 
     private function handleGitRepository(): void
     {
-        $this->line('Checking Git repository status...');
-
         if (File::isDirectory(base_path('.git'))) {
-            // Check if this is a clone of the fission template
             if ($this->isCloneOfFissionTemplate()) {
-                $this->warn('This appears to be a clone of the Fission starter template.');
+                warning('This appears to be a clone of the Fission starter template.');
 
                 if (confirm('Would you like to remove the existing Git history and start fresh?', true)) {
                     File::deleteDirectory(base_path('.git'));
-                    $this->info('Removed existing Git history.');
                     $this->initializeGit = true;
-                } else {
-                    $this->line('Keeping existing Git repository.');
                 }
-            } else {
-                $this->line('Git repository already initialized. Skipping.');
             }
 
             return;
         }
 
-        // Ask if user wants to initialize a new repository after cleanup
         $this->initializeGit = confirm('Would you like to initialize a fresh Git repository after installation?', true);
     }
 
@@ -113,39 +101,40 @@ final class FissionInstall extends Command
 
         $remoteUrl = $output[0];
 
-        // Check for various forms of the fission repo URL
         return str_contains($remoteUrl, 'joshcirre/fission')
             || str_contains($remoteUrl, 'github.com/joshcirre/fission');
     }
 
     private function postInstallFluxPro(): void
     {
-        // Check for auth.json in home directory (personal convenience shortcut)
         $sourceAuthJson = $_SERVER['HOME'].'/Code/flux-auth.json';
 
         if (File::exists($sourceAuthJson) && ! File::exists(base_path('auth.json'))) {
             File::copy($sourceAuthJson, base_path('auth.json'));
-            $this->info('Flux Pro credentials copied from ~/Code/flux-auth.json.');
+            info('Flux Pro credentials copied from ~/Code/flux-auth.json.');
 
             return;
         }
 
         if (! File::exists(base_path('auth.json'))) {
-            $this->line('Running flux:activate to configure your Flux Pro credentials...');
+            note('Running flux:activate to configure your Flux Pro credentials...');
             $this->call('flux:activate');
-        } else {
-            $this->info('Flux Pro installed. Credentials already configured.');
+
+            return;
         }
+
+        info('Flux Pro installed. Credentials already configured.');
     }
 
     private function initializeGitRepository(): void
     {
-        if ($this->initializeGit) {
-            $this->line('Initializing fresh Git repository...');
+        if (! $this->initializeGit) {
+            return;
+        }
 
+        spin(function (): void {
             exec('git init');
 
-            // Create a basic .gitignore if it doesn't exist
             if (! File::exists(base_path('.gitignore'))) {
                 File::put(base_path('.gitignore'), implode("\n", [
                     '/.phpunit.cache',
@@ -160,26 +149,21 @@ final class FissionInstall extends Command
                     '/.vscode',
                     '.phpunit.result.cache',
                 ]));
-                $this->line('Created .gitignore file.');
             }
 
-            // Create initial commit with everything
             exec('git add .');
             exec('git commit -m "Initial commit"');
+        }, 'Initializing fresh Git repository');
 
-            $this->line('Git repository initialized with initial commit.');
-        }
+        info('Git repository initialized with initial commit.');
     }
 
     private function setupEnvFile(): void
     {
-        // Only create .env if it doesn't exist (should already be handled by Laravel installer)
         if (! File::exists('.env') && File::exists('.env.example')) {
-            $this->line('Creating .env file...');
             File::copy('.env.example', '.env');
         }
 
-        // Ensure APP_ENV is set to local - do this silently
         $envContent = File::get('.env');
         if (in_array(preg_match('/^APP_ENV=local/m', $envContent), [0, false], true)) {
             $this->updateEnv('APP_ENV', 'local');
@@ -188,31 +172,30 @@ final class FissionInstall extends Command
 
     private function runMigrations(): void
     {
-        if (confirm('Do you want to run database migrations?', true)) {
-            $this->line('Running database migrations...');
+        if (! confirm('Do you want to run database migrations?', true)) {
+            return;
+        }
 
-            // Ensure database.sqlite exists
-            if (! file_exists(database_path('database.sqlite'))) {
-                file_put_contents(database_path('database.sqlite'), '');
-                $this->line('Created database.sqlite file.');
-            }
+        if (! file_exists(database_path('database.sqlite'))) {
+            file_put_contents(database_path('database.sqlite'), '');
+        }
 
-            $this->call('migrate', [
-                '--force' => true, // This will bypass the production check
-                '--ansi' => true,
-            ]);
+        $success = $this->runTask(
+            'Running database migrations',
+            [PHP_BINARY.' artisan migrate --force --no-interaction'],
+        );
+
+        if ($success) {
+            info('Database migrated.');
         }
     }
 
     private function setProjectName(): void
     {
-        // Only set project name if it's still the default "Laravel"
         $currentAppName = env('APP_NAME');
         $currentAppUrl = env('APP_URL');
 
         if ($currentAppName !== 'Laravel' && $currentAppName !== null) {
-            $this->line('Project name already set. Skipping.');
-
             return;
         }
 
@@ -226,7 +209,6 @@ final class FissionInstall extends Command
 
         $this->updateEnv('APP_NAME', $name);
 
-        // Only ask for URL if it's not already set or is still default
         if (in_array($currentAppUrl, [null, 'http://localhost', 'http://localhost:8000'], true)) {
             $defaultUrl = 'http://localhost:8000';
             $url = text(
@@ -239,12 +221,9 @@ final class FissionInstall extends Command
                     : 'Please enter a valid URL'
             );
 
-            // Remove trailing slash to prevent issues
             $url = mb_rtrim($url, '/');
 
             $this->updateEnv('APP_URL', $url);
-        } else {
-            $this->line('APP_URL already configured: '.$currentAppUrl);
         }
     }
 
@@ -294,27 +273,36 @@ final class FissionInstall extends Command
             'pirsch' => 'pirsch-analytics/laravel',
         ];
 
-        // If Flux Pro is selected, register its private repository first
-        if (in_array('flux-pro', $selected)) {
-            passthru('composer config repositories.flux-pro composer https://composer.fluxui.dev --no-interaction');
+        if (in_array('flux-pro', $selected, true)) {
+            $this->runTask(
+                'Registering Flux Pro composer repository',
+                ['composer config repositories.flux-pro composer https://composer.fluxui.dev --no-interaction'],
+            );
         }
 
-        // Collect all composer packages and install in a single command
-        // to avoid autoloader regeneration breaking the running process
         $composerPackages = array_map(fn (string $key): string => $packageMap[$key], $selected);
 
-        $this->line('Installing packages: '.implode(', ', $composerPackages));
-        passthru('composer require '.implode(' ', $composerPackages).' --no-interaction');
+        $success = $this->runTask(
+            'Installing optional packages',
+            ['composer require '.implode(' ', $composerPackages).' --no-interaction'],
+        );
 
-        // Run post-install steps
+        if (! $success) {
+            error('Failed to install one or more optional packages.');
+
+            return;
+        }
+
+        info('Installed: '.implode(', ', $selected));
+
         foreach ($selected as $package) {
             match ($package) {
                 'flux-pro' => $this->postInstallFluxPro(),
-                'bento' => $this->info('Bento installed. Add your BENTO_SITE_UUID and BENTO_PUBLISHABLE_KEY to .env to complete setup.'),
+                'bento' => note('Add your BENTO_SITE_UUID and BENTO_PUBLISHABLE_KEY to .env to complete Bento setup.'),
                 'filament' => $this->postInstallFilament(),
-                'nightwatch' => $this->info('Nightwatch installed. Run php artisan nightwatch:install to complete setup.'),
-                'laravel-ai' => $this->info('Laravel AI installed.'),
-                'pirsch' => $this->info('Pirsch Analytics installed. Add your PIRSCH_CLIENT_ID to .env to complete setup.'),
+                'nightwatch' => note('Run `php artisan nightwatch:install` to complete Nightwatch setup.'),
+                'laravel-ai' => null,
+                'pirsch' => note('Add your PIRSCH_CLIENT_ID to .env to complete Pirsch Analytics setup.'),
             };
         }
     }
@@ -322,43 +310,43 @@ final class FissionInstall extends Command
     private function handleTeamSupport(): void
     {
         if (confirm('Would you like to add teams support to your application?', false)) {
-            $this->line('Teams support enabled.');
+            info('Teams support enabled.');
 
             return;
         }
 
-        app(RemovesTeamSupport::class)->handle();
-
-        $this->line('Teams support removed from this installation.');
+        spin(fn () => app(RemovesTeamSupport::class)->handle(), 'Removing teams support');
     }
 
     private function postInstallFilament(): void
     {
-        passthru('php artisan filament:install --panels --no-interaction');
-        $this->info('Filament installed.');
+        $this->runTask(
+            'Installing Filament panel',
+            [PHP_BINARY.' artisan filament:install --panels --no-interaction'],
+        );
     }
 
     private function updateBoost(): void
     {
-        $this->line('Updating Boost guidelines & skills...');
-        $this->call('boost:update', ['--no-interaction' => true]);
+        $this->runTask(
+            'Updating Boost guidelines & skills',
+            [PHP_BINARY.' artisan boost:update --no-interaction'],
+        );
     }
 
     private function installInstruckt(): void
     {
-        $this->line('Installing Instruckt agent integration...');
-        $this->call('instruckt:install', ['--no-interaction' => true]);
+        $this->runTask(
+            'Installing Instruckt agent integration',
+            [PHP_BINARY.' artisan instruckt:install --no-interaction'],
+        );
     }
 
     private function cleanup(): void
     {
-        $this->line('Removing installation files...');
-
-        // Remove the Commands folder but keep this command until it's completely done
         $currentCommand = self::class;
         $commandFile = app_path('Console/Commands/'.class_basename($currentCommand).'.php');
 
-        // Remove other command files
         foreach (File::glob(app_path('Console/Commands/*.php')) as $file) {
             if ($file !== $commandFile) {
                 File::delete($file);
@@ -368,9 +356,6 @@ final class FissionInstall extends Command
         File::delete(app_path('Support/RemovesTeamSupport.php'));
         File::deleteDirectory(resource_path('stubs/no-teams'));
         File::delete(base_path('tests/Feature/RemovesTeamSupportTest.php'));
-
-        // This will be cleaned up by Laravel after the command completes
-        $this->line('Installation files removed.');
     }
 
     private function reloadEnvironment(): void
@@ -383,14 +368,47 @@ final class FissionInstall extends Command
 
     private function generatePhpStanBaseline(): void
     {
-        $this->line('Generating PHPStan baseline for test code...');
+        $this->runTask(
+            'Generating PHPStan baseline',
+            ['./vendor/bin/phpstan analyse --memory-limit=256M --generate-baseline --no-interaction'],
+        );
+    }
 
-        exec('./vendor/bin/phpstan analyse --memory-limit=256M --generate-baseline 2>&1', $output, $returnCode);
+    /**
+     * Run one or more shell commands inside a Laravel Prompts task spinner,
+     * streaming their output into the task log area.
+     *
+     * @param  array<int, string>  $commands
+     */
+    private function runTask(string $label, array $commands): bool
+    {
+        $result = task(
+            label: $label.'...',
+            callback: function (Logger $logger) use ($commands): bool {
+                foreach ($commands as $command) {
+                    $process = Process::fromShellCommandline($command, base_path());
+                    $process->setTimeout(null);
+                    $process->run(function (string $type, string $line) use ($logger): void {
+                        foreach (preg_split('/\r\n|\r|\n/', mb_rtrim($line)) ?: [] as $singleLine) {
+                            if ($singleLine !== '') {
+                                $logger->line($singleLine);
+                            }
+                        }
+                    });
 
-        if ($returnCode === 0) {
-            $this->info('PHPStan baseline generated successfully.');
-        } else {
-            $this->comment('PHPStan baseline generation skipped.');
-        }
+                    if (! $process->isSuccessful()) {
+                        $logger->error($label.' failed');
+
+                        return false;
+                    }
+                }
+
+                $logger->success($label);
+
+                return true;
+            },
+        );
+
+        return $result === true;
     }
 }
