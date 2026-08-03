@@ -4,8 +4,7 @@ use App\Models\Team;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Team $team;
 
     public string $invitationCode = '';
@@ -19,14 +18,15 @@ new class extends Component
         $this->team = $team;
         $this->invitationCode = $invitationCode ?? '';
         $this->invitationEmail = $invitationEmail ?? '';
-        $this->modalName = $modalName ?? ($invitationCode !== null ? 'cancel-invitation-'.$invitationCode : 'cancel-invitation');
+        $this->modalName = $modalName ?? ($invitationCode !== null ? 'cancel-invitation-' . $invitationCode : 'cancel-invitation');
     }
 
     public function cancelInvitation(): void
     {
         Gate::authorize('cancelInvitation', $this->team);
 
-        $invitation = $this->team->invitations()
+        $invitation = $this->team
+            ->invitations()
             ->where('code', $this->invitationCode)
             ->firstOrFail();
 

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Livewire\Livewire;
 
-test('password can be reset with valid token', function () {
+test('password can be reset with valid token', function (): void {
     $user = User::factory()->create();
     $token = Password::createToken($user);
 
@@ -21,7 +21,7 @@ test('password can be reset with valid token', function () {
     expect(Hash::check('new-password', $user->fresh()->password))->toBeTrue();
 });
 
-test('password reset requires valid email', function () {
+test('password reset requires valid email', function (): void {
     $token = Password::createToken(User::factory()->create());
 
     Livewire::test('pages::auth.reset-password', ['token' => $token])
@@ -32,7 +32,7 @@ test('password reset requires valid email', function () {
         ->assertHasErrors(['email']);
 });
 
-test('password must be confirmed', function () {
+test('password must be confirmed', function (): void {
     $user = User::factory()->create();
     $token = Password::createToken($user);
 

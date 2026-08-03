@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Override;
 
 final class Team extends Model
 {
@@ -59,24 +60,26 @@ final class Team extends Model
         return $this->hasMany(TeamInvitation::class);
     }
 
+    #[Override]
     public function getRouteKeyName(): string
     {
         return 'slug';
     }
 
+    #[Override]
     protected static function boot(): void
     {
         parent::boot();
 
         self::creating(function (Team $team): void {
             if ($team->slug === null || $team->slug === '') {
-                $team->slug = static::generateUniqueTeamSlug($team->name);
+                $team->slug = self::generateUniqueTeamSlug($team->name);
             }
         });
 
         self::updating(function (Team $team): void {
             if ($team->isDirty('name')) {
-                $team->slug = static::generateUniqueTeamSlug($team->name, $team->id);
+                $team->slug = self::generateUniqueTeamSlug($team->name, $team->id);
             }
         });
     }
@@ -84,6 +87,7 @@ final class Team extends Model
     /**
      * @return array<string, string>
      */
+    #[Override]
     protected function casts(): array
     {
         return [

@@ -5,8 +5,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Team $team;
 
     public ?string $memberId = null;
@@ -20,7 +19,7 @@ new class extends Component
         $this->team = $team;
         $this->memberId = $memberId;
         $this->memberName = $memberName ?? '';
-        $this->modalName = $modalName ?? ($memberId !== null ? 'remove-member-'.$memberId : 'remove-member');
+        $this->modalName = $modalName ?? ($memberId !== null ? 'remove-member-' . $memberId : 'remove-member');
     }
 
     public function removeMember(): void
@@ -33,7 +32,8 @@ new class extends Component
             $this->memberName = $user->name;
         }
 
-        $this->team->memberships()
+        $this->team
+            ->memberships()
             ->where('user_id', $user->id)
             ->delete();
 

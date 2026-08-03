@@ -27,7 +27,7 @@ composer fix     # Fix code style, apply refactoring, and format code
 - **Laravel 12** with Livewire 4
 - **Livewire Volt** for single-file components
 - **Livewire Flux Pro** UI components
-- **Pest v4** for testing
+- **Pest v5** for testing
 - **Tailwind CSS v4**
 - **SQLite** by default
 
@@ -245,7 +245,7 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - laravel/pail (PAIL) - v1
 - laravel/pint (PINT) - v1
 - laravel/sail (SAIL) - v1
-- pestphp/pest (PEST) - v4
+- pestphp/pest (PEST) - v5
 - phpunit/phpunit (PHPUNIT) - v12
 - rector/rector (RECTOR) - v2
 - prettier (PRETTIER) - v3

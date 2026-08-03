@@ -9,7 +9,7 @@ use App\Models\User;
 
 final class TeamPolicy
 {
-    public function viewAny(User $user): bool
+    public function viewAny(): bool
     {
         return true;
     }
@@ -19,7 +19,7 @@ final class TeamPolicy
         return $user->belongsToTeam($team);
     }
 
-    public function create(User $user): bool
+    public function create(): bool
     {
         return true;
     }

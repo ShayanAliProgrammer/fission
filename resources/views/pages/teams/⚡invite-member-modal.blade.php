@@ -10,8 +10,7 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Team $team;
 
     public string $inviteEmail = '';
@@ -39,8 +38,7 @@ new class extends Component
             'expires_at' => now()->addDays(3),
         ]);
 
-        Notification::route('mail', $invitation->email)
-            ->notify(new TeamInvitationNotification($invitation));
+        Notification::route('mail', $invitation->email)->notify(new TeamInvitationNotification($invitation));
 
         $this->reset('inviteEmail', 'inviteRole');
         $this->dispatch('close-modal', name: 'invite-member');

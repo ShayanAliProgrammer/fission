@@ -9,11 +9,11 @@ use Livewire\Livewire;
 use function Pest\Laravel\assertDatabaseHas;
 use function Pest\Laravel\get;
 
-test('profile page requires authentication', function () {
+test('profile page requires authentication', function (): void {
     get('/profile')->assertRedirect('/auth/login');
 });
 
-test('profile information can be updated', function () {
+test('profile information can be updated', function (): void {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
@@ -29,7 +29,7 @@ test('profile information can be updated', function () {
     ]);
 });
 
-test('email verification status is cleared when email is changed', function () {
+test('email verification status is cleared when email is changed', function (): void {
     $user = User::factory()->create(['email_verified_at' => now()]);
 
     Livewire::actingAs($user)
@@ -41,7 +41,7 @@ test('email verification status is cleared when email is changed', function () {
     expect($user->fresh()->email_verified_at)->toBeNull();
 });
 
-test('user name is required', function () {
+test('user name is required', function (): void {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
@@ -52,7 +52,7 @@ test('user name is required', function () {
         ->assertHasErrors(['name' => 'required']);
 });
 
-test('user email is required', function () {
+test('user email is required', function (): void {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
@@ -63,7 +63,7 @@ test('user email is required', function () {
         ->assertHasErrors(['email' => 'required']);
 });
 
-test('user email must be valid', function () {
+test('user email must be valid', function (): void {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
@@ -74,7 +74,7 @@ test('user email must be valid', function () {
         ->assertHasErrors(['email']);
 });
 
-test('user email must be unique', function () {
+test('user email must be unique', function (): void {
     $otherUser = User::factory()->create(['email' => 'other@example.com']);
     $user = User::factory()->create();
 
@@ -86,7 +86,7 @@ test('user email must be unique', function () {
         ->assertHasErrors(['email' => 'unique']);
 });
 
-test('password can be updated', function () {
+test('password can be updated', function (): void {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
@@ -99,7 +99,7 @@ test('password can be updated', function () {
     expect(Hash::check('new-password', $user->fresh()->password))->toBeTrue();
 });
 
-test('correct password must be provided to update password', function () {
+test('correct password must be provided to update password', function (): void {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
@@ -111,7 +111,7 @@ test('correct password must be provided to update password', function () {
         ->assertHasErrors(['current_password']);
 });
 
-test('new password must be confirmed', function () {
+test('new password must be confirmed', function (): void {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
@@ -123,7 +123,7 @@ test('new password must be confirmed', function () {
         ->assertHasErrors(['password' => 'confirmed']);
 });
 
-test('user can delete their account', function () {
+test('user can delete their account', function (): void {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)
@@ -135,7 +135,7 @@ test('user can delete their account', function () {
     expect(User::find($user->id))->toBeNull();
 });
 
-test('correct password must be provided to delete account', function () {
+test('correct password must be provided to delete account', function (): void {
     $user = User::factory()->create();
 
     Livewire::actingAs($user)

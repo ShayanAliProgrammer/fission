@@ -12,8 +12,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-new #[Layout('layouts::app')] class extends Component
-{
+new #[Layout('layouts::app')] class extends Component {
     public Team $team;
 
     public string $teamName = '';
@@ -53,11 +52,14 @@ new #[Layout('layouts::app')] class extends Component
         Gate::authorize('update', $this->team);
 
         $validated = $this->validate([
-            'teamName' => ['required', 'string', 'max:255', new TeamName],
+            'teamName' => ['required', 'string', 'max:255', new TeamName()],
         ]);
 
         $team = DB::transaction(function () use ($validated): Team {
-            $team = Team::query()->whereKey($this->team->id)->lockForUpdate()->firstOrFail();
+            $team = Team::query()
+                ->whereKey($this->team->id)
+                ->lockForUpdate()
+                ->firstOrFail();
             $team->update(['name' => $validated['teamName']]);
 
             return $team;
@@ -77,11 +79,15 @@ new #[Layout('layouts::app')] class extends Component
     {
         Gate::authorize('updateMember', $this->team);
 
-        $validated = Validator::make(['role' => $role], [
-            'role' => ['required', 'string', Rule::enum(TeamRole::class)],
-        ])->validate();
+        $validated = Validator::make(
+            ['role' => $role],
+            [
+                'role' => ['required', 'string', Rule::enum(TeamRole::class)],
+            ],
+        )->validate();
 
-        $this->team->memberships()
+        $this->team
+            ->memberships()
             ->where('user_id', $userId)
             ->firstOrFail()
             ->update(['role' => TeamRole::from($validated['role'])]);
@@ -107,32 +113,37 @@ new #[Layout('layouts::app')] class extends Component
             'is_personal' => $team->is_personal,
         ];
 
-        $this->members = $team->members()
+        $this->members = $team
+            ->members()
             ->orderBy('name')
             ->get()
-            ->map(fn ($member): array => [
-                'id' => $member->id,
-                'name' => $member->name,
-                'email' => $member->email,
-                'role' => $member->pivot->role,
-                'role_label' => TeamRole::from($member->pivot->role)->label(),
-            ])
+            ->map(
+                fn ($member): array => [
+                    'id' => $member->id,
+                    'name' => $member->name,
+                    'email' => $member->email,
+                    'role' => $member->pivot->role,
+                    'role_label' => TeamRole::from($member->pivot->role)->label(),
+                ],
+            )
             ->all();
 
-        $this->invitations = $team->invitations()
+        $this->invitations = $team
+            ->invitations()
             ->whereNull('accepted_at')
             ->where(function ($query): void {
-                $query->whereNull('expires_at')
-                    ->orWhere('expires_at', '>', now());
+                $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
             })
             ->orderBy('email')
             ->get()
-            ->map(fn ($invitation): array => [
-                'code' => $invitation->code,
-                'email' => $invitation->email,
-                'role' => $invitation->role->value,
-                'role_label' => $invitation->role->label(),
-            ])
+            ->map(
+                fn ($invitation): array => [
+                    'code' => $invitation->code,
+                    'email' => $invitation->email,
+                    'role' => $invitation->role->value,
+                    'role_label' => $invitation->role->label(),
+                ],
+            )
             ->all();
 
         $this->availableRoles = TeamRole::assignable();
@@ -197,7 +208,10 @@ new #[Layout('layouts::app')] class extends Component
 
                                         <flux:menu>
                                             @foreach ($availableRoles as $role)
-                                                <flux:menu.item wire:click="updateMember('{{ $member['id'] }}', '{{ $role['value'] }}')" class="cursor-pointer">
+                                                <flux:menu.item
+                                                    wire:click="updateMember('{{ $member['id'] }}', '{{ $role['value'] }}')"
+                                                    class="cursor-pointer"
+                                                >
                                                     {{ $role['label'] }}
                                                 </flux:menu.item>
                                             @endforeach

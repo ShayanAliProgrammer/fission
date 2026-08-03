@@ -4,8 +4,7 @@ use App\Models\Team;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-new #[Layout('layouts::app')] class extends Component
-{
+new #[Layout('layouts::app')] class extends Component {
     public Team $team;
 
     public function mount(Team $team): void
@@ -20,9 +19,7 @@ new #[Layout('layouts::app')] class extends Component
     <flux:card>
         <div class="space-y-3">
             <flux:heading size="lg">Playground</flux:heading>
-            <flux:subheading>
-                Working in the context of {{ $team->name }}.
-            </flux:subheading>
+            <flux:subheading>Working in the context of {{ $team->name }}.</flux:subheading>
         </div>
     </flux:card>
 

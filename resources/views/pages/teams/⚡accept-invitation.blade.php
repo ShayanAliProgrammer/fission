@@ -9,8 +9,7 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-new #[Layout('layouts::app')] class extends Component
-{
+new #[Layout('layouts::app')] class extends Component {
     public TeamInvitation $invitation;
 
     public function mount(TeamInvitation $invitation): void
@@ -27,10 +26,7 @@ new #[Layout('layouts::app')] class extends Component
         DB::transaction(function () use ($user): void {
             $team = $this->invitation->team;
 
-            $team->memberships()->firstOrCreate(
-                ['user_id' => $user->id],
-                ['role' => $this->invitation->role],
-            );
+            $team->memberships()->firstOrCreate(['user_id' => $user->id], ['role' => $this->invitation->role]);
 
             $this->invitation->update(['accepted_at' => now()]);
 
@@ -71,9 +67,7 @@ new #[Layout('layouts::app')] class extends Component
         <div class="space-y-6">
             <div>
                 <flux:heading size="lg">Accept Team Invitation</flux:heading>
-                <flux:subheading>
-                    Join {{ $invitation->team->name }} as {{ $invitation->role->label() }}.
-                </flux:subheading>
+                <flux:subheading>Join {{ $invitation->team->name }} as {{ $invitation->role->label() }}.</flux:subheading>
             </div>
 
             @error('invitation')

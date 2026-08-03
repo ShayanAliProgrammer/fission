@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enums\TeamRole;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Override;
 
 final class Membership extends Model
 {
@@ -36,6 +37,7 @@ final class Membership extends Model
     /**
      * @return array<string, string>
      */
+    #[Override]
     protected function casts(): array
     {
         return [

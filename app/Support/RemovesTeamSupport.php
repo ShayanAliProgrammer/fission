@@ -6,12 +6,12 @@ namespace App\Support;
 
 use Illuminate\Filesystem\Filesystem;
 
-final class RemovesTeamSupport
+final readonly class RemovesTeamSupport
 {
     public function __construct(
-        private readonly Filesystem $files,
-        private readonly ?string $basePath = null,
-        private readonly ?string $stubPath = null,
+        private Filesystem $files,
+        private ?string $basePath = null,
+        private ?string $stubPath = null,
     ) {}
 
     public function handle(): void

@@ -7,7 +7,7 @@ use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 
-test('password reset link can be requested', function () {
+test('password reset link can be requested', function (): void {
     Notification::fake();
 
     $user = User::factory()->create();
@@ -19,14 +19,14 @@ test('password reset link can be requested', function () {
     Notification::assertSentTo($user, ResetPassword::class);
 });
 
-test('email field is required', function () {
+test('email field is required', function (): void {
     Livewire::test('pages::auth.forgot-password')
         ->set('email', '')
         ->call('sendPasswordResetLink')
         ->assertHasErrors(['email' => 'required']);
 });
 
-test('email must be valid', function () {
+test('email must be valid', function (): void {
     Livewire::test('pages::auth.forgot-password')
         ->set('email', 'not-an-email')
         ->call('sendPasswordResetLink')

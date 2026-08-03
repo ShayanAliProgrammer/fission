@@ -7,8 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-new #[Layout('layouts::app')] class extends Component
-{
+new #[Layout('layouts::app')] class extends Component {
     public string $name = '';
 
     /**
@@ -22,7 +21,7 @@ new #[Layout('layouts::app')] class extends Component
     public function createTeam(CreateTeam $createTeam): void
     {
         $validated = $this->validate([
-            'name' => ['required', 'string', 'max:255', new App\Rules\TeamName],
+            'name' => ['required', 'string', 'max:255', new App\Rules\TeamName()],
         ]);
 
         $team = $createTeam->handle(Auth::user(), $validated['name']);
@@ -83,7 +82,7 @@ new #[Layout('layouts::app')] class extends Component
                             @endif
                         </div>
 
-                        <flux:text>{{ auth()->user()->teamRole($team)?->label() ?? 'Member' }}</flux:text>
+                        <flux:text>{{ auth()->user()->teamRole($team) ?->label() ?? 'Member' }}</flux:text>
                     </div>
 
                     <div class="flex flex-wrap items-center gap-2">

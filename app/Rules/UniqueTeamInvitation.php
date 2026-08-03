@@ -10,9 +10,9 @@ use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Translation\PotentiallyTranslatedString;
 
-final class UniqueTeamInvitation implements ValidationRule
+final readonly class UniqueTeamInvitation implements ValidationRule
 {
-    public function __construct(private readonly Team $team) {}
+    public function __construct(private Team $team) {}
 
     /**
      * @param  Closure(string, ?string=): PotentiallyTranslatedString  $fail

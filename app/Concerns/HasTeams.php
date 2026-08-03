@@ -99,7 +99,7 @@ trait HasTeams
     public function fallbackTeam(?Team $excluding = null): ?Team
     {
         return $this->teams()
-            ->when($excluding !== null, fn ($query) => $query->where('teams.id', '!=', $excluding->id))
+            ->when($excluding instanceof Team, fn ($query) => $query->where('teams.id', '!=', $excluding->id))
             ->orderByDesc('is_personal')
             ->orderBy('name')
             ->first();

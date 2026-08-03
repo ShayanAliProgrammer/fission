@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
+use Override;
 
 final class TeamInvitation extends Model
 {
@@ -47,11 +48,13 @@ final class TeamInvitation extends Model
         return $this->expires_at !== null && $this->expires_at->isPast();
     }
 
+    #[Override]
     public function getRouteKeyName(): string
     {
         return 'code';
     }
 
+    #[Override]
     protected static function boot(): void
     {
         parent::boot();
@@ -66,6 +69,7 @@ final class TeamInvitation extends Model
     /**
      * @return array<string, string>
      */
+    #[Override]
     protected function casts(): array
     {
         return [

@@ -15,11 +15,11 @@ use function Pest\Laravel\assertDatabaseHas;
 use function Pest\Laravel\assertDatabaseMissing;
 use function Pest\Laravel\get;
 
-test('teams page requires authentication', function () {
+test('teams page requires authentication', function (): void {
     get('/teams')->assertRedirect('/auth/login');
 });
 
-test('team members can view the playground in team context', function () {
+test('team members can view the playground in team context', function (): void {
     $user = User::factory()->create();
     $team = app(CreateTeam::class)->handle($user, 'Owner Team', true);
 
@@ -33,7 +33,7 @@ test('team members can view the playground in team context', function () {
         ->assertSee('Working in the context of Owner Team.');
 });
 
-test('users cannot view another teams playground', function () {
+test('users cannot view another teams playground', function (): void {
     $owner = User::factory()->create();
     $outsider = User::factory()->create();
     $team = app(CreateTeam::class)->handle($owner, 'Owner Team', true);
@@ -44,10 +44,10 @@ test('users cannot view another teams playground', function () {
     get(route('playground', $team))->assertForbidden();
 });
 
-test('authenticated users can create teams', function () {
+test('authenticated users can create teams', function (): void {
     $user = User::factory()->create();
 
-    app(CreateTeam::class)->handle($user, "{$user->name}'s Team", true);
+    app(CreateTeam::class)->handle($user, $user->name."'s Team", true);
 
     Livewire::actingAs($user)
         ->test('pages::teams.index')
@@ -56,8 +56,8 @@ test('authenticated users can create teams', function () {
 
     $team = Team::where('name', 'Acme Studio')->first();
 
-    expect($team)->not->toBeNull();
-    expect($user->fresh()->current_team_id)->toBe($team?->id);
+    expect($team)->not->toBeNull()
+        ->and($user->fresh()->current_team_id)->toBe($team?->id);
 
     assertDatabaseHas('team_members', [
         'team_id' => $team?->id,
@@ -66,10 +66,10 @@ test('authenticated users can create teams', function () {
     ]);
 });
 
-test('authenticated users can switch teams', function () {
+test('authenticated users can switch teams', function (): void {
     $user = User::factory()->create();
 
-    $personalTeam = app(CreateTeam::class)->handle($user, "{$user->name}'s Team", true);
+    $personalTeam = app(CreateTeam::class)->handle($user, $user->name."'s Team", true);
     $secondTeam = Team::factory()->create(['name' => 'Client Team']);
 
     $secondTeam->members()->attach($user->id, [
@@ -85,7 +85,7 @@ test('authenticated users can switch teams', function () {
     expect($user->fresh()->current_team_id)->toBe($secondTeam->id);
 });
 
-test('team owners can invite members', function () {
+test('team owners can invite members', function (): void {
     Notification::fake();
 
     $owner = User::factory()->create();
@@ -99,13 +99,13 @@ test('team owners can invite members', function () {
 
     $invitation = TeamInvitation::where('email', 'invitee@example.com')->first();
 
-    expect($invitation)->not->toBeNull();
-    expect($invitation?->role)->toBe(TeamRole::Admin);
+    expect($invitation)->not->toBeNull()
+        ->and($invitation?->role)->toBe(TeamRole::Admin);
 
     Notification::assertSentOnDemand(TeamInvitationNotification::class);
 });
 
-test('team owners can update member roles', function () {
+test('team owners can update member roles', function (): void {
     $owner = User::factory()->create();
     $member = User::factory()->create();
     $team = app(CreateTeam::class)->handle($owner, 'Owner Team', true);
@@ -125,7 +125,7 @@ test('team owners can update member roles', function () {
     ]);
 });
 
-test('team owners can remove members', function () {
+test('team owners can remove members', function (): void {
     $owner = User::factory()->create();
     $member = User::factory()->create();
     $team = app(CreateTeam::class)->handle($owner, 'Owner Team', true);
@@ -153,7 +153,7 @@ test('team owners can remove members', function () {
     expect($member->fresh()->current_team_id)->toBe($fallbackTeam->id);
 });
 
-test('team owners can cancel invitations', function () {
+test('team owners can cancel invitations', function (): void {
     $owner = User::factory()->create();
     $team = app(CreateTeam::class)->handle($owner, 'Owner Team', true);
 
@@ -177,7 +177,7 @@ test('team owners can cancel invitations', function () {
     ]);
 });
 
-test('invited users can accept invitations', function () {
+test('invited users can accept invitations', function (): void {
     $owner = User::factory()->create();
     $invitee = User::factory()->create(['email' => 'invitee@example.com']);
     $team = app(CreateTeam::class)->handle($owner, 'Owner Team', true);
@@ -199,6 +199,6 @@ test('invited users can accept invitations', function () {
         'role' => TeamRole::Admin->value,
     ]);
 
-    expect($invitee->fresh()->current_team_id)->toBe($team->id);
-    expect($invitation->fresh()->accepted_at)->not->toBeNull();
+    expect($invitee->fresh()->current_team_id)->toBe($team->id)
+        ->and($invitation->fresh()->accepted_at)->not->toBeNull();
 });

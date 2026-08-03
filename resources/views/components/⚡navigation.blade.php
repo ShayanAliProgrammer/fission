@@ -6,8 +6,7 @@ use App\Models\Team;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public string $team_name = '';
 
     public function logout(Logout $logout): void
@@ -45,8 +44,8 @@ new class extends Component
 
         $referer = request()->header('Referer');
 
-        if (is_string($referer) && $currentTeam !== null && str_contains($referer, '/'.$currentTeam->slug.'/playground')) {
-            $this->redirect(str_replace('/'.$currentTeam->slug.'/playground', '/'.$team->slug.'/playground', $referer), navigate: true);
+        if (is_string($referer) && $currentTeam !== null && str_contains($referer, '/' . $currentTeam->slug . '/playground')) {
+            $this->redirect(str_replace('/' . $currentTeam->slug . '/playground', '/' . $team->slug . '/playground', $referer), navigate: true);
 
             return;
         }
@@ -66,7 +65,9 @@ new class extends Component
         <flux:navbar class="max-lg:hidden">
             <flux:navbar.item icon="home" href="/" wire:navigate>Home</flux:navbar.item>
             <flux:separator vertical variant="subtle" class="my-2" />
-            <flux:navbar.item icon="face-smile" href="{{ route('playground', auth()->user()->currentTeam) }}" wire:navigate>Playground</flux:navbar.item>
+            <flux:navbar.item icon="face-smile" href="{{ route('playground', auth()->user()->currentTeam) }}" wire:navigate>
+                Playground
+            </flux:navbar.item>
         </flux:navbar>
 
         <flux:spacer />
@@ -95,7 +96,9 @@ new class extends Component
                 <flux:menu.item href="{{ route('teams.index') }}" wire:navigate icon="users">Manage Teams</flux:menu.item>
 
                 @if (auth()->user()->currentTeam !== null)
-                    <flux:menu.item href="{{ route('teams.edit', auth()->user()->currentTeam) }}" wire:navigate icon="cog-6-tooth">Current Team</flux:menu.item>
+                    <flux:menu.item href="{{ route('teams.edit', auth()->user()->currentTeam) }}" wire:navigate icon="cog-6-tooth">
+                        Current Team
+                    </flux:menu.item>
                 @endif
 
                 <flux:modal.trigger name="create-team-from-nav">
@@ -122,7 +125,9 @@ new class extends Component
 
         <flux:sidebar.nav>
             <flux:sidebar.item icon="home" href="/" wire:navigate>Home</flux:sidebar.item>
-            <flux:sidebar.item icon="face-smile" href="{{ route('playground', auth()->user()->currentTeam) }}" wire:navigate>Playground</flux:sidebar.item>
+            <flux:sidebar.item icon="face-smile" href="{{ route('playground', auth()->user()->currentTeam) }}" wire:navigate>
+                Playground
+            </flux:sidebar.item>
         </flux:sidebar.nav>
     </flux:sidebar>
 

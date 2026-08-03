@@ -10,8 +10,7 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-new #[Layout('layouts::app')] class extends Component
-{
+new #[Layout('layouts::app')] class extends Component {
     public string $name = '';
 
     public string $email = '';
@@ -164,9 +163,7 @@ new #[Layout('layouts::app')] class extends Component
                 </div>
 
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <flux:text>
-                        Current team: {{ auth()->user()->currentTeam?->name ?? 'No team selected' }}
-                    </flux:text>
+                    <flux:text>Current team: {{ auth()->user()->currentTeam?->name ?? 'No team selected' }}</flux:text>
 
                     <flux:button href="{{ route('teams.index') }}" wire:navigate variant="primary">Manage Teams</flux:button>
                 </div>
