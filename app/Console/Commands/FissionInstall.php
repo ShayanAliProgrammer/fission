@@ -384,7 +384,7 @@ final class FissionInstall extends Command
     {
         $result = task(
             label: $label.'...',
-            callback: function (Logger $logger) use ($commands): bool {
+            callback: function (Logger $logger) use ($commands, $label): bool {
                 foreach ($commands as $command) {
                     $process = Process::fromShellCommandline($command, base_path());
                     $process->setTimeout(null);
