@@ -132,28 +132,33 @@ final class FissionInstall extends Command
             return;
         }
 
-        spin(function (): void {
-            exec('git init');
+        if (! $this->runTask('Initializing fresh Git repository', ['git init'])) {
+            error('Could not initialize a Git repository. Run `git init` manually once the problem above is resolved.');
 
-            if (! File::exists(base_path('.gitignore'))) {
-                File::put(base_path('.gitignore'), implode("\n", [
-                    '/.phpunit.cache',
-                    '/vendor',
-                    'composer.phar',
-                    'composer.lock',
-                    '.DS_Store',
-                    'Thumbs.db',
-                    '/phpunit.xml',
-                    '/.idea',
-                    '/.fleet',
-                    '/.vscode',
-                    '.phpunit.result.cache',
-                ]));
-            }
+            return;
+        }
 
-            exec('git add .');
-            exec('git commit -m "Initial commit"');
-        }, 'Initializing fresh Git repository');
+        if (! File::exists(base_path('.gitignore'))) {
+            File::put(base_path('.gitignore'), implode("\n", [
+                '/.phpunit.cache',
+                '/vendor',
+                'composer.phar',
+                'composer.lock',
+                '.DS_Store',
+                'Thumbs.db',
+                '/phpunit.xml',
+                '/.idea',
+                '/.fleet',
+                '/.vscode',
+                '.phpunit.result.cache',
+            ]));
+        }
+
+        if (! $this->runTask('Creating initial commit', ['git add .', 'git commit -m "Initial commit"'])) {
+            error('Could not create the initial commit. Your files are untouched — commit manually when ready.');
+
+            return;
+        }
 
         info('Git repository initialized with initial commit.');
     }
