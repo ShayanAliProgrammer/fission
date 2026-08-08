@@ -6,23 +6,44 @@ use App\Console\Commands\FissionInstall;
 use Illuminate\Support\Facades\File;
 use Laravel\Prompts\Prompt;
 
+/**
+ * @var array<string, string>
+ */
+const GIT_IDENTITY = [
+    'GIT_AUTHOR_NAME' => 'Fission',
+    'GIT_AUTHOR_EMAIL' => 'fission@example.com',
+    'GIT_COMMITTER_NAME' => 'Fission',
+    'GIT_COMMITTER_EMAIL' => 'fission@example.com',
+];
+
 beforeEach(function (): void {
     Prompt::fake();
+});
+
+afterEach(function (): void {
+    foreach (array_keys(GIT_IDENTITY) as $variable) {
+        unset($_ENV[$variable], $_SERVER[$variable]);
+    }
 });
 
 /**
  * Build an installer whose base path points at a scratch directory, so the Git
  * commands under test never touch the real project repository.
+ *
+ * The identity is exported through $_ENV rather than putenv() because Symfony's
+ * Process filters getenv() against $_SERVER when building the child environment,
+ * which drops putenv()-only variables. Without it these tests depend on whoever
+ * runs them having a global Git identity — CI runners do not.
  */
 function installerInScratchRepository(string $directory): FissionInstall
 {
     File::ensureDirectoryExists($directory);
     app()->setBasePath($directory);
 
-    putenv('GIT_AUTHOR_NAME=Fission');
-    putenv('GIT_AUTHOR_EMAIL=fission@example.com');
-    putenv('GIT_COMMITTER_NAME=Fission');
-    putenv('GIT_COMMITTER_EMAIL=fission@example.com');
+    foreach (GIT_IDENTITY as $variable => $value) {
+        $_ENV[$variable] = $value;
+        $_SERVER[$variable] = $value;
+    }
 
     $command = new FissionInstall;
     $command->setLaravel(app());
